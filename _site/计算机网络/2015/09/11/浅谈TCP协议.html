@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>    
+  <head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width initial-scale=1">
+
+  <title>浅谈TCP协议</title>
+  <meta name="description" content="TCP（Transmission Control Protocol 传输控制协议）是一种面向连接的、可靠的、基于字节流的传输层通信协议，由IETF的RFC 793定义。在简化的计算机网络 OSI 模型中，它完成第四层传输层所指定的功能，用户数据报协议（UDP）是同一层内另一个重要的传输协议。在因特网协议族（Int...">
+
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="canonical" href="http://localhost:4000/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/2015/09/11/%E6%B5%85%E8%B0%88TCP%E5%8D%8F%E8%AE%AE.html">
+  <link rel="alternate" type="application/atom+xml" title="whihail" href="http://localhost:4000/feed.xml" />
+  <script src="/scripts/jquery-1.11.2.min.js"></script>
+  <script src="/scripts/pithy.js"></script>
+</head>
+
+
+  <body>
+    <header class="header">
+	<div class="header-container">
+		<div class="nav">
+			
+				<li>
+					<a href="/index.html">HOME</a>
+				</li>			
+			
+			
+				<li>
+					<a href="/archive.html">ARCHIVE</a>
+				</li>			
+			
+			
+				<li>
+					<a href="/category.html">CATEGORY</a>
+				</li>			
+			
+			
+				<li>
+					<a href="/about.html">ABOUT</a>
+				</li>			
+			
+		</div>
+		<div class="description"> 彻底的有所作为，是让你大有所为 </div>		
+		<ul class="social-links">
+			<li>
+				<a href="https://github.com/whihail" title="Github">
+					<img width="19px" height="19px" src="/images/github.png"/>
+				</a>
+			</li>
+			<li>
+				<a href="/feed.xml" title="RSS">
+					<img width="19px" height="19px" src="/images/rss.png"/>
+				</a>
+			</li>
+		</ul>		
+	</div>
+</header>
+
+    <br>
+    <div class="page-content">
+      <div class="wrapper">
+        <div class="post">
+  <br>
+  <header class="post-header">
+    <h1 class="post-title">浅谈TCP协议</h1>
+    <p class="post-meta">Sep 11, 2015</p>
+  </header>
+
+  <article class="post-content">
+    <p>TCP（Transmission Control Protocol 传输控制协议）是一种面向连接的、可靠的、基于字节流的传输层通信协议，由IETF的RFC 793定义。在简化的计算机网络 OSI 模型中，它完成第四层传输层所指定的功能，用户数据报协议（UDP）是同一层内另一个重要的传输协议。在因特网协议族（Internet protocol suite）中，TCP 层是位于 IP 层之上，应用层之下的中间层。</p>
+
+<h3 id="功能"><strong>功能</strong></h3>
+<p>当应用层向TCP层发送用于网间传输的、用8位字节表示的数据流，TCP则把数据流分割成适当长度的报文段，最大传输段大小（MSS）通常受该计算机连接的网络的数据链路层的最大传送单元（MTU）限制。之后TCP把数据包传给IP层，由它来通过网络将包传送给接收端实体的TCP层。
+TCP为了保证报文传输的可靠，就给每个包一个序号，同时序号也保证了传送到接收端实体的包的按序接收。然后接收端实体对已成功收到的字节发回一个相应的确认(ACK)；如果发送端实体在合理的往返时延(RTT)内未收到确认，那么对应的数据（假设丢失了）将会被重传。</p>
+
+<ul>
+  <li>在数据正确性与合法性上，TCP用一个校验和函数来检验数据是否有错误，在发送和接收时都要计算校验和；同时可以使用md5认证对数据进行加密。</li>
+  <li>在保证可靠性上，采用超时重传和捎带确认机制。</li>
+  <li>在流量控制上，采用滑动窗口协议，协议中规定，对于窗口内未经确认的分组需要重传。</li>
+</ul>
+
+<p>在拥塞控制上，采用广受好评的TCP拥塞控制算法（也称AIMD算法）。该算法主要包括三个主要部分：1）加性增、乘性减；2）慢启动；3）对超时事件做出反应。</p>
+
+<h3 id="连接建立"><strong>连接建立</strong></h3>
+<p>TCP是因特网中的传输层协议，使用三次握手协议建立连接。当主动方发出SYN连接请求后，等待对方回答SYN+ACK，并最终对对方的 SYN 执行 ACK确认。这种建立连接的方法可以防止产生错误的连接，TCP使用的流量控制协议是可变大小的滑动窗口协议。
+TCP三次握手的过程如下：</p>
+
+<ul>
+  <li>客户端发送SYN（SEQ=x）报文给服务器端，进入SYN_SEND状态。</li>
+  <li>服务器端收到SYN报文，回应一个SYN （SEQ=y）ACK(ACK=x+1）报文，进入SYN_RECV状态。</li>
+  <li>客户端收到服务器端的SYN报文，回应一个ACK(ACK=y+1）报文，进入Established状态。</li>
+</ul>
+
+<p>三次握手完成，TCP客户端和服务器端成功地建立连接，可以开始传输数据了。</p>
+
+<h3 id="连接终止"><strong>连接终止</strong></h3>
+<p>建立一个连接需要三次握手，而终止一个连接要经过四次握手，这是由TCP的半关闭（half-close）造成的。
+(1) 某个应用进程首先调用close，称该端执行“主动关闭”（active close）。该端的TCP于是发送一个FIN分节，表示数据发送完毕。
+(2) 接收到这个FIN的对端执行 “被动关闭”（passive close），这个FIN由TCP确认。
+(3) 一段时间后，接收到这个文件结束符的应用进程将调用close关闭它的套接字。这导致它的TCP也发送一个FIN。
+(4) 接收这个最终FIN的原发送端TCP（即执行主动关闭的那一端）确认这个FIN。</p>
+
+<h3 id="可靠性"><strong>可靠性</strong></h3>
+<p>TCP提供一种面向连接的、可靠的字节流服务。面向连接意味着两个使用TCP的应用（通常是一个客户和一个服务器）在彼此交换数据包之前必须先建立一个TCP连接。这一过程与打电话很相似，先拨号振铃，等待对方摘机说“喂”，然后才说明是谁。在一个TCP连接中，仅有两方进行彼此通信。广播和多播不能用于TCP。
+TCP通过下列方式来提供可靠性：</p>
+
+<p>1．应用数据被分割成TCP认为最适合发送的数据块。这和UDP完全不同，应用程序产生的数据长度将保持不变。由TCP传递给IP的信息单位称为报文段或段（segment）。</p>
+
+<p>2．当TCP发出一个段后，它启动一个定时器，等待目的端确认收到这个报文段。如果不能及时收到一个确认，将重发这个报文段。当TCP收到发自TCP连接另一端的数据，它将发送一个确认。TCP有延迟确认的功能，在此功能没有打开，则是立即确认。功能打开，则由定时器触发确认时间点。</p>
+
+<p>3．TCP将保持它首部和数据的检验和。这是一个端到端的检验和，目的是检测数据在传输过程中的任何变化。如果收到段的检验和有差错，TCP将丢弃这个报文段和不确认收到此报文段（希望发端超时并重发）。</p>
+
+<p>4．既然TCP报文段作为IP数据报来传输，而IP数据报的到达可能会失序，因此TCP报文段的到达也可能会失序。如果必要，TCP将对收到的数据进行重新排序，将收到的数据以正确的顺序交给应用层。</p>
+
+<p>5．既然IP数据报会发生重复，TCP的接收端必须丢弃重复的数据。</p>
+
+<p>6．TCP还能提供流量控制。TCP连接的每一方都有固定大小的缓冲空间。TCP的接收端只允许另一端发送接收端缓冲区所能接纳的数据。这将防止较快主机致使较慢主机的缓冲区溢出。</p>
+
+<p>两个应用程序通过TCP连接交换8bit字节构成的字节流。TCP不在字节流中插入记录标识符。我们将这称为字节流服务（bytestreamservice）。如果一方的应用程序先传10字节，又传20字节，再传50字节，连接的另一方将无法了解发方每次发送了多少字节。只要自己的接收缓存没有塞满，TCP 接收方将有多少就收多少。一端将字节流放到TCP连接上，同样的字节流将出现在TCP连接的另一端。
+另外，TCP对字节流的内容不作任何解释。TCP不知道传输的数据字节流是二进制数据，还是ASCⅡ字符、EBCDIC字符或者其他类型数据。对字节流的解释由TCP连接双方的应用层解释。
+这种对字节流的处理方式与Unix操作系统对文件的处理方式很相似。Unix的内核对一个应用读或写的内容不作任何解释，而是交给应用程序处理。对Unix的内核来说，它无法区分一个二进制文件与一个文本文件。</p>
+
+<h3 id="重传策略"><strong>重传策略</strong></h3>
+<p>TCP协议用于控制数据段是否需要重传的依据是设立重发定时器。在发送一个数据段的同时启动一个重传，如果在重传超时前收到确认(Acknowlegement)就关闭该重传，如果重传超时前没有收到确认，则重传该数据段。在选择重发时间的过程中，TCP必须具有自适应性。它需要根据互联网当时的通信情况，给出合适的重发时间。</p>
+
+<p>这种重传策略的关键是对定时器初值的设定。采用较多的算法是Jacobson于1988年提出的一种不断调整超时时间间隔的动态算法。其工作原理是：对每条连接TCP都保持一个变量RTT（Round Trip Time），用于存放当前到目的端往返所需要时间最接近的估计值。当发送一个数据段时，同时启动连接的定时器，如果在定时器超时前确认到达，则记录所需要的时间（M），并修正RTT的值，如果定时器超时前没有收到确认，则将RTT的值增加1倍。通过测量一系列的RTT（往返时间）值，TCP协议可以估算数据包重发前需要等待的时间。在估计该连接所需的当前延迟时通常利用一些统计学的原理和算法（如Karn算法），从而得到TCP重发之前需要等待的时间值。</p>
+
+<h3 id="窗口确认"><strong>窗口确认</strong></h3>
+<p>TCP的一项功能就是确保每个数据段都能到达目的地。位于目的主机的TCP服务对接受到的数据进行确认，并向源应用程序发送确认信息。
+使用数据报头序列号以及确认号来确认已收到包含在数据段的相关的数据字节。
+TCP在发回源设备的数据段中使用确认号，指示接收设备期待接收的下一字节。这个过程称为期待确认。
+源主机在收到确认消息之前可以传输的数据的大小称为窗口大小。用于管理丢失数据和流量控制。这些变化如右图所示。</p>
+
+<h3 id="拥塞控制"><strong>拥塞控制</strong></h3>
+<h4 id="出现拥塞的两种情况"><strong>出现拥塞的两种情况：</strong></h4>
+<ul>
+  <li>快网络小缓存接收者</li>
+  <li>慢网络大缓存接收者</li>
+</ul>
+
+<h4 id="导致网络拥塞的两个潜在因素"><strong>导致网络拥塞的两个潜在因素：</strong></h4>
+<ul>
+  <li>网络能力</li>
+  <li>接收能力</li>
+</ul>
+
+<h4 id="tcp处理第一种拥塞的措施快网络小缓存"><strong>TCP处理第一种拥塞的措施（快网络小缓存）</strong></h4>
+<ul>
+  <li>在连接建立时声明最大可接受段长度</li>
+  <li>利用可变滑动窗口协议防止出现拥塞</li>
+</ul>
+
+<h4 id="tcp处理第二种拥塞的措施慢网络大缓存"><strong>TCP处理第二种拥塞的措施（慢网络大缓存）</strong></h4>
+<ul>
+  <li>发送方维护两个窗口，接收方和拥塞窗口，发送方窗口按两个窗口的最小值发送</li>
+  <li>拥塞窗口依照慢启动（slow start）算法和拥塞避免（congestion avoidance）算法变化</li>
+</ul>
+
+<h4 id="慢启动slow-start算法"><strong>慢启动（slow start）算法</strong></h4>
+<p>连接建立时拥塞窗口（cwnd）初始值为该连接的最大段长（TCP最大段长），不超过64K。
+发出一个最大段长的TCP段，若正确确认，拥塞窗口变为两个最大段长。
+发出（拥塞窗口/最大段长）个最大长度的TCP段，若都得到确认，则拥塞窗口加倍。
+重复上一步，直至发送丢包超时事件，或拥塞窗口大于阈值。</p>
+
+<h4 id="拥塞避免congestion-avoidance算法"><strong>拥塞避免（congestion avoidance）算法</strong></h4>
+<p>若拥塞窗口大于阈值，从此时开始，拥塞窗口线性增长，一个RTT周期增加一个最大段长，直至发生丢包超时事件。
+当超时事件发生后，阈值设置为当前拥塞窗口大小的一半，拥塞窗口重新设置为一个最大段长。
+执行慢启动算法。</p>
+
+
+  </article>
+</div>
+
+      </div>
+    </div>
+    
+    <footer class="footer">
+  <div id="gotop">^</div>
+  <br>
+	@2015 Pithy Theme by Pawpaw.
+</footer>
+
+    
+  </body>
+
+</html>
